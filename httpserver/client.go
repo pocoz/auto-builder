@@ -8,7 +8,6 @@ import (
 	kithttp "github.com/go-kit/kit/transport/http"
 
 	"github.com/pocoz/auto-builder/types"
-
 )
 
 // Client is a client for service.
@@ -36,7 +35,7 @@ func NewClient(serviceURL string) (*Client, error) {
 }
 
 // CreateBuild
-func (c *Client) CreateBuild(ctx context.Context, payload *types.HookPayload) error {
+func (c *Client) CreateBuild(ctx context.Context, payload *types.Payload) error {
 	request := createBuildRequest{Payload: payload}
 	response, err := c.createBuild(ctx, request)
 	if err != nil {

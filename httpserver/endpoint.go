@@ -17,7 +17,7 @@ func makeCreateBuildEndpoint(svc service) endpoint.Endpoint {
 }
 
 type createBuildRequest struct {
-	Payload *types.HookPayload
+	Payload *types.Payload
 }
 
 type createBuildResponse struct {

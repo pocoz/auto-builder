@@ -16,7 +16,7 @@ type loggingMiddleware struct {
 	logger log.Logger
 }
 
-func (m *loggingMiddleware) createBuild(ctx context.Context, payload *types.HookPayload) error {
+func (m *loggingMiddleware) createBuild(ctx context.Context, payload *types.Payload) error {
 	begin := time.Now()
 	err := m.next.createBuild(ctx, payload)
 	level.Info(m.logger).Log(

@@ -1,32 +1,48 @@
 package types
 
-type HookPayload struct {
-	CallbackURL string     `json:"callback_url"`
-	PushData    PushData   `json:"push_data"`
-	Repository  Repository `json:"repository"`
+const ActionPush = "push"
+
+type Payload struct {
+	Events []*Event
 }
 
-type PushData struct {
-	Images   []string `json:"images"`
-	PushedAt float64  `json:"pushed_at"`
-	Pusher   string   `json:"pusher"`
-	Tag      string   `json:"tag"`
+type Event struct {
+	ID        string      `json:"id"`
+	TimeStamp string      `json:"timestamp"`
+	Action    string      `json:"action"`
+	Target    Target      `json:"target"`
+	Request   Request     `json:"request"`
+	Actor     interface{} `json:"actor"`
 }
 
-type Repository struct {
-	CommentCount    string  `json:"comment_count"`
-	DateCreated     float64 `json:"date_created"`
-	Description     string  `json:"description"`
-	Dockerfile      string  `json:"dockerfile"`
-	FullDescription string  `json:"full_description"`
-	IsOfficial      bool    `json:"is_official"`
-	IsPrivate       bool    `json:"is_private"`
-	IsTrusted       bool    `json:"is_trusted"`
-	Name            string  `json:"name"`
-	Namespace       string  `json:"namespace"`
-	Owner           string  `json:"owner"`
-	RepoName        string  `json:"repo_name"`
-	RepoURL         string  `json:"repo_url"`
-	StarCount       int64   `json:"star_count"`
-	Status          string  `json:"status"`
+type Target struct {
+	MediaType  string `json:"mediaType"`
+	Size       int64  `json:"size"`
+	Digest     string `json:"digest"`
+	Length     int64  `json:"length"`
+	Repository string `json:"repository"`
+	URL        string `json:"url"`
+	Tag        string `json:"tag"`
+}
+
+type Request struct {
+	ID        string `json:"id"`
+	Addr      string `json:"addr"`
+	Host      string `json:"host"`
+	Method    string `json:"method"`
+	UserAgent string `json:"useragent"`
+}
+
+type Source struct {
+	Addr       string `json:"addr"`
+	InstanceID string `json:"instanceID"`
+}
+
+type Configs struct {
+	ConfigList []*Config `json:"config_list"`
+}
+
+type Config struct {
+	Image        string   `json:"image"`
+	Environments []string `json:"environments"`
 }

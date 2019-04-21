@@ -2,11 +2,15 @@ package main
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	dtypes "github.com/docker/docker/api/types"
+	"github.com/docker/docker/client"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/kelseyhightower/envconfig"
@@ -16,9 +20,11 @@ import (
 )
 
 type configuration struct {
-	HTTPPort       string        `envconfig:"AUTH_HTTP_PORT"        default:"24001"`
-	RateLimitEvery time.Duration `envconfig:"AUTH_RATE_LIMIT_EVERY" default:"1us"`
-	RateLimitBurst int           `envconfig:"AUTH_RATE_LIMIT_BURST" default:"100"`
+	HTTPPort         string        `envconfig:"BUILDER_HTTP_PORT"         default:"24001"`
+	RateLimitEvery   time.Duration `envconfig:"BUILDER_RATE_LIMIT_EVERY"  default:"1us"`
+	RateLimitBurst   int           `envconfig:"BUILDER_RATE_LIMIT_BURST"  default:"100"`
+	RegistryLogin    string        `envconfig:"BUILDER_REGISTRY_LOGIN"`
+	RegistryPassword string        `envconfig:"BUILDER_REGISTRY_PASSWORD"`
 }
 
 func main() {
@@ -39,10 +45,29 @@ func main() {
 		os.Exit(exitCodeFailure)
 	}
 
+	dockerCli, err := client.NewEnvClient()
+	if err != nil {
+		level.Error(logger).Log("msg", "failed to initialize docker client", "err", err)
+		os.Exit(exitCodeFailure)
+	}
+
+	registryAuthConfig := dtypes.AuthConfig{
+		Username: cfg.RegistryLogin,
+		Password: cfg.RegistryPassword,
+	}
+	encodedRegistryAuthConfig, err := json.Marshal(registryAuthConfig)
+	if err != nil {
+		level.Error(logger).Log("msg", "failed to initialize registry auth config", "err", err)
+		os.Exit(exitCodeFailure)
+	}
+	registryAuth := base64.URLEncoding.EncodeToString(encodedRegistryAuthConfig)
+
 	serverHTTP, err := httpserver.New(&httpserver.Config{
-		Logger:      logger,
-		Port:        cfg.HTTPPort,
-		RateLimiter: rate.NewLimiter(rate.Every(cfg.RateLimitEvery), cfg.RateLimitBurst),
+		Logger:       logger,
+		Port:         cfg.HTTPPort,
+		DockerCli:    dockerCli,
+		RegistryAuth: registryAuth,
+		RateLimiter:  rate.NewLimiter(rate.Every(cfg.RateLimitEvery), cfg.RateLimitBurst),
 	})
 	if err != nil {
 		level.Error(logger).Log("msg", "failed to initialize HTTP server", "err", err)
