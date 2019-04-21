@@ -2,9 +2,7 @@ package httpserver
 
 import (
 	"context"
-	"encoding/json"
 	"io"
-	"io/ioutil"
 	"os"
 	"strings"
 	"time"
@@ -23,28 +21,14 @@ type service interface {
 }
 
 type basicService struct {
-	logger       log.Logger
-	dockerCli    *client.Client
-	registryAuth string
+	logger        log.Logger
+	dockerCli     *client.Client
+	dockerConfigs *types.Configs
+	registryAuth  string
 }
 
 // createBuild
 func (s *basicService) createBuild(ctx context.Context, payload *types.Payload) error {
-	// Read config
-	dat, err := ioutil.ReadFile("/srv/auto-builder/config.json")
-	if err != nil {
-		level.Info(s.logger).Log("method", "read config", "err", err)
-		return nil
-	}
-
-	// Create config
-	var config *types.Configs
-	err = json.Unmarshal(dat, &config)
-	if err != nil {
-		level.Info(s.logger).Log("method", "unmarshal config", "err", err)
-		return nil
-	}
-
 	for _, e := range payload.Events {
 		if e.Action == types.ActionPush {
 			// Validation
@@ -61,18 +45,18 @@ func (s *basicService) createBuild(ctx context.Context, payload *types.Payload) 
 			imageName := e.Request.Host + "/" + e.Target.Repository
 
 			// Check for repository content in config
-			if !imageInConfig(imageName, config) {
+			if !imageInConfig(imageName, s.dockerConfigs) {
 				continue
 			}
 
-			// docker ps
+			// Get running containers
 			containers, err := s.dockerCli.ContainerList(context.Background(), dtypes.ContainerListOptions{})
 			if err != nil {
 				level.Info(s.logger).Log("method", "get containers", "err", err)
 				continue
 			}
 			for _, c := range containers {
-				// Pull last c
+				// Pull last container
 				out, err := s.dockerCli.ImagePull(ctx, imageName, dtypes.ImagePullOptions{RegistryAuth: s.registryAuth})
 				if err != nil {
 					level.Info(s.logger).Log("method", "[image pull]container pull", "err", err)
@@ -100,12 +84,7 @@ func (s *basicService) createBuild(ctx context.Context, payload *types.Payload) 
 					}
 
 					// Remove old container
-					removeOptions := dtypes.ContainerRemoveOptions{
-						RemoveVolumes: false,
-						RemoveLinks:   false,
-						Force:         false,
-					}
-					err = s.dockerCli.ContainerRemove(ctx, c.ID, removeOptions)
+					err = s.dockerCli.ContainerRemove(ctx, c.ID, dtypes.ContainerRemoveOptions{})
 					if err != nil {
 						level.Info(s.logger).Log("method", "container remove", "err", err)
 						continue

@@ -8,6 +8,8 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"golang.org/x/time/rate"
+
+	"github.com/pocoz/auto-builder/types"
 )
 
 // ServerHTTP is a service http server.
@@ -18,11 +20,12 @@ type ServerHTTP struct {
 
 // Config is a http server configuration.
 type Config struct {
-	Logger       log.Logger
-	Port         string
-	DockerCli    *client.Client
-	RegistryAuth string
-	RateLimiter  *rate.Limiter
+	Logger        log.Logger
+	Port          string
+	DockerCli     *client.Client
+	DockerConfigs *types.Configs
+	RegistryAuth  string
+	RateLimiter   *rate.Limiter
 }
 
 // New creates a new http server.
@@ -42,9 +45,10 @@ func New(cfg *Config) (*ServerHTTP, error) {
 	}
 
 	svc := &basicService{
-		logger:       cfg.Logger,
-		dockerCli:    cfg.DockerCli,
-		registryAuth: cfg.RegistryAuth,
+		logger:        cfg.Logger,
+		dockerCli:     cfg.DockerCli,
+		dockerConfigs: cfg.DockerConfigs,
+		registryAuth:  cfg.RegistryAuth,
 	}
 
 	handler := newHandler(&handlerConfig{

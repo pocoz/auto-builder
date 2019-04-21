@@ -12,4 +12,3 @@ Push образа:
 
 Запуск образа:
 
-    docker run -d --network host --restart always --name auto-builder pocoz/auto-builder

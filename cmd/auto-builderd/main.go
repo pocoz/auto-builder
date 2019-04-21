@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"github.com/pocoz/auto-builder/types"
+	"io/ioutil"
 	"os"
 	"os/signal"
 	"syscall"
@@ -62,12 +64,28 @@ func main() {
 	}
 	registryAuth := base64.URLEncoding.EncodeToString(encodedRegistryAuthConfig)
 
+	// Read config
+	dat, err := ioutil.ReadFile("/srv/auto-builder/config.json")
+	if err != nil {
+		level.Error(logger).Log("msg", "failed to read config", "err", err)
+		os.Exit(exitCodeFailure)
+	}
+
+	// Create config
+	var configs *types.Configs
+	err = json.Unmarshal(dat, &configs)
+	if err != nil {
+		level.Error(logger).Log("msg", "failed to create config", "err", err)
+		os.Exit(exitCodeFailure)
+	}
+
 	serverHTTP, err := httpserver.New(&httpserver.Config{
-		Logger:       logger,
-		Port:         cfg.HTTPPort,
-		DockerCli:    dockerCli,
-		RegistryAuth: registryAuth,
-		RateLimiter:  rate.NewLimiter(rate.Every(cfg.RateLimitEvery), cfg.RateLimitBurst),
+		Logger:        logger,
+		Port:          cfg.HTTPPort,
+		DockerCli:     dockerCli,
+		DockerConfigs: configs,
+		RegistryAuth:  registryAuth,
+		RateLimiter:   rate.NewLimiter(rate.Every(cfg.RateLimitEvery), cfg.RateLimitBurst),
 	})
 	if err != nil {
 		level.Error(logger).Log("msg", "failed to initialize HTTP server", "err", err)
