@@ -23,7 +23,7 @@ type service interface {
 type basicService struct {
 	logger        log.Logger
 	dockerCli     *client.Client
-	dockerConfigs *types.Configs
+	dockerConfigs []*types.Config
 	registryAuth  string
 }
 
@@ -120,8 +120,8 @@ func (s *basicService) createBuild(ctx context.Context, payload *types.Payload) 
 	return nil
 }
 
-func imageInConfig(image string, conf *types.Configs) bool {
-	for _, c := range conf.ConfigList {
+func imageInConfig(image string, conf []*types.Config) bool {
+	for _, c := range conf {
 		if c.Image == image {
 			return true
 		}

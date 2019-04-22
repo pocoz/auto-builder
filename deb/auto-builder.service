@@ -1,0 +1,12 @@
+[Unit]
+Description=auto-builder
+
+[Service]
+PIDFile=/tmp/auto-builder
+User=auto-builder
+Group=auto-builder
+WorkingDirectory=/tmp
+ExecStart=/usr/bin/auto-builder
+
+[Install]
+WantedBy=multi-user.target

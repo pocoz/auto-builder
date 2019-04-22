@@ -23,7 +23,7 @@ type Config struct {
 	Logger        log.Logger
 	Port          string
 	DockerCli     *client.Client
-	DockerConfigs *types.Configs
+	DockerConfigs []*types.Config
 	RegistryAuth  string
 	RateLimiter   *rate.Limiter
 }

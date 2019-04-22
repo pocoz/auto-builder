@@ -1,0 +1,39 @@
+{
+  "name": "auto-builder",
+  "maintainer": "pocoz <pocoz@yandex.com>",
+  "files": [
+    {
+      "from": "build/!arch!/!name!",
+      "to": "/usr/bin",
+      "base": "build/!arch!",
+      "fperm": "0755"
+    },
+    {
+      "from": "assets/**/**",
+      "to": "/usr/share/hello/"
+    },
+    {
+      "from": "assets/**/**",
+      "to": "/usr/share/hello/other",
+      "base": "assets"
+    }
+  ],
+  "copyrights": [
+    {
+      "files": "*",
+      "copyright": "2019 pocoz <pocoz@yandex.com>"
+    }
+  ],
+  "depends": [
+    "adduser",
+    "libc6"
+  ],
+  "description": "service that processes the hooks of the storage docker for the automatic assembly of containers",
+  "systemd-file": "deb/auto-builder.service",
+  "preinst-file": "deb/preinst.sh",
+  "postinst-file": "deb/postinst.sh",
+  "prerm-file": "deb/prerm.sh",
+  "postrm-file": "deb/postrm.sh",
+  "changelog-file": "changelog",
+  "menus": []
+}

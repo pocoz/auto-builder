@@ -25,8 +25,6 @@ type configuration struct {
 	HTTPPort         string        `envconfig:"BUILDER_HTTP_PORT"         default:"24001"`
 	RateLimitEvery   time.Duration `envconfig:"BUILDER_RATE_LIMIT_EVERY"  default:"1us"`
 	RateLimitBurst   int           `envconfig:"BUILDER_RATE_LIMIT_BURST"  default:"100"`
-	RegistryLogin    string        `envconfig:"BUILDER_REGISTRY_LOGIN"`
-	RegistryPassword string        `envconfig:"BUILDER_REGISTRY_PASSWORD"`
 }
 
 func main() {
@@ -53,18 +51,7 @@ func main() {
 		os.Exit(exitCodeFailure)
 	}
 
-	registryAuthConfig := dtypes.AuthConfig{
-		Username: cfg.RegistryLogin,
-		Password: cfg.RegistryPassword,
-	}
-	encodedRegistryAuthConfig, err := json.Marshal(registryAuthConfig)
-	if err != nil {
-		level.Error(logger).Log("msg", "failed to initialize registry auth config", "err", err)
-		os.Exit(exitCodeFailure)
-	}
-	registryAuth := base64.URLEncoding.EncodeToString(encodedRegistryAuthConfig)
-
-	// Read config
+	// Read system config
 	dat, err := ioutil.ReadFile("/srv/auto-builder/config.json")
 	if err != nil {
 		level.Error(logger).Log("msg", "failed to read config", "err", err)
@@ -79,11 +66,22 @@ func main() {
 		os.Exit(exitCodeFailure)
 	}
 
+	registryAuthConfig := dtypes.AuthConfig{
+		Username: configs.Auth.Login,
+		Password: configs.Auth.Password,
+	}
+	encodedRegistryAuthConfig, err := json.Marshal(registryAuthConfig)
+	if err != nil {
+		level.Error(logger).Log("msg", "failed to initialize registry auth config", "err", err)
+		os.Exit(exitCodeFailure)
+	}
+	registryAuth := base64.URLEncoding.EncodeToString(encodedRegistryAuthConfig)
+
 	serverHTTP, err := httpserver.New(&httpserver.Config{
 		Logger:        logger,
 		Port:          cfg.HTTPPort,
 		DockerCli:     dockerCli,
-		DockerConfigs: configs,
+		DockerConfigs: configs.ConfigList,
 		RegistryAuth:  registryAuth,
 		RateLimiter:   rate.NewLimiter(rate.Every(cfg.RateLimitEvery), cfg.RateLimitBurst),
 	})

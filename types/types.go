@@ -39,7 +39,13 @@ type Source struct {
 }
 
 type Configs struct {
+	Auth       Auth      `json:"auth"`
 	ConfigList []*Config `json:"config_list"`
+}
+
+type Auth struct {
+	Login    string `json:"login"`
+	Password string `json:"password"`
 }
 
 type Config struct {
