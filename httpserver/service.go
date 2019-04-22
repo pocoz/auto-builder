@@ -57,7 +57,7 @@ func (s *basicService) createBuild(ctx context.Context, payload *types.Payload) 
 			}
 			for _, c := range containers {
 				// Pull last container
-				out, err := s.dockerCli.ImagePull(ctx, imageName, dtypes.ImagePullOptions{RegistryAuth: s.registryAuth})
+				out, err := s.dockerCli.ImagePull(context.TODO(), imageName, dtypes.ImagePullOptions{RegistryAuth: s.registryAuth})
 				if err != nil {
 					level.Info(s.logger).Log("method", "[image pull]container pull", "err", err)
 					continue
@@ -93,7 +93,7 @@ func (s *basicService) createBuild(ctx context.Context, payload *types.Payload) 
 
 				// Create new container
 				newContainer, err := s.dockerCli.ContainerCreate(
-					ctx,
+					context.TODO(),
 					&dcontainer.Config{
 						Image: imageName,
 					},
