@@ -20,7 +20,7 @@ func (m *loggingMiddleware) createBuild(ctx context.Context, payload *types.Payl
 	begin := time.Now()
 	err := m.next.createBuild(ctx, payload)
 	level.Info(m.logger).Log(
-		"method", "CreatePayload",
+		"method", "CreateBuild",
 		"err", err,
 		"elapsed", time.Since(begin),
 	)

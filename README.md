@@ -33,7 +33,7 @@ registry:2
 ```
 
 Port used by default
-- 24001 - HTTP API
+- 23001 - HTTP API
 
 Create a file in the directory:
 ```

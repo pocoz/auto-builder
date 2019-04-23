@@ -22,7 +22,7 @@ import (
 )
 
 type configuration struct {
-	HTTPPort         string        `envconfig:"BUILDER_HTTP_PORT"         default:"24001"`
+	HTTPPort         string        `envconfig:"BUILDER_HTTP_PORT"         default:"23001"`
 	RateLimitEvery   time.Duration `envconfig:"BUILDER_RATE_LIMIT_EVERY"  default:"1us"`
 	RateLimitBurst   int           `envconfig:"BUILDER_RATE_LIMIT_BURST"  default:"100"`
 }

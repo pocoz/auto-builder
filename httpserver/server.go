@@ -2,6 +2,7 @@ package httpserver
 
 import (
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/docker/docker/client"
@@ -49,6 +50,7 @@ func New(cfg *Config) (*ServerHTTP, error) {
 		dockerCli:     cfg.DockerCli,
 		dockerConfigs: cfg.DockerConfigs,
 		registryAuth:  cfg.RegistryAuth,
+		mu:            sync.Mutex{},
 	}
 
 	handler := newHandler(&handlerConfig{
