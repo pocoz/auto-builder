@@ -44,8 +44,9 @@ func (s *basicService) createBuild(ctx context.Context, payload *types.Payload) 
 			// Create image name
 			imageName := e.Request.Host + "/" + e.Target.Repository
 
-			// Check for repository content in config
-			if !imageInConfig(imageName, s.dockerConfigs) {
+			// Check for repository content in config and get him envs
+			conf, ok := imageInConfig(imageName, s.dockerConfigs)
+			if !ok {
 				continue
 			}
 
@@ -98,10 +99,16 @@ func (s *basicService) createBuild(ctx context.Context, payload *types.Payload) 
 			newContainer, err := s.dockerCli.ContainerCreate(
 				context.TODO(),
 				&dcontainer.Config{
-					Image: imageName,
+					Image: conf.Image,
+					Env:   conf.Environments,
+					Cmd:   conf.Cmd,
 				},
 				&dcontainer.HostConfig{
 					NetworkMode: "host",
+					Binds:       conf.Binds,
+					RestartPolicy: dcontainer.RestartPolicy{
+						Name: "always",
+					},
 				}, nil, e.Target.Repository)
 			if err != nil {
 				level.Info(s.logger).Log("method", "container create", "err", err)
@@ -121,11 +128,11 @@ func (s *basicService) createBuild(ctx context.Context, payload *types.Payload) 
 	return nil
 }
 
-func imageInConfig(image string, conf []*types.Config) bool {
+func imageInConfig(image string, conf []*types.Config) (*types.Config, bool) {
 	for _, c := range conf {
 		if c.Image == image {
-			return true
+			return c, true
 		}
 	}
-	return false
+	return nil, false
 }

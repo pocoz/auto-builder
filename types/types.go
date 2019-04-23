@@ -51,4 +51,6 @@ type Auth struct {
 type Config struct {
 	Image        string   `json:"image"`
 	Environments []string `json:"environments"`
+	Cmd          []string `json:"cmd"`
+	Binds        []string `json:"binds"`
 }
