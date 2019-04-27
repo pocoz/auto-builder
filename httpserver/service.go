@@ -65,23 +65,25 @@ func (s *basicService) createBuild(ctx context.Context, payload *types.Payload) 
 			}
 
 			for _, c := range containers {
-				// Find running containers
-				if c.Image == imageName {
-					// Stop old container
-					duration := 5 * time.Second
-					err = s.dockerCli.ContainerStop(context.TODO(), c.ID, &duration)
-					if err != nil {
-						level.Info(s.logger).Log("method", "container stop", "err", err)
-						s.mu.Unlock()
-						continue
-					}
+				for _, name := range c.Names {
+					targetRepoName := "/" + e.Target.Repository
+					if targetRepoName == name {
+						// Stop old container
+						duration := 5 * time.Second
+						err = s.dockerCli.ContainerStop(context.TODO(), c.ID, &duration)
+						if err != nil {
+							level.Info(s.logger).Log("method", "container stop", "err", err)
+							s.mu.Unlock()
+							continue
+						}
 
-					// Remove old container
-					err = s.dockerCli.ContainerRemove(context.TODO(), c.ID, dtypes.ContainerRemoveOptions{})
-					if err != nil {
-						level.Info(s.logger).Log("method", "container remove", "err", err)
-						s.mu.Unlock()
-						continue
+						// Remove old container
+						err = s.dockerCli.ContainerRemove(context.TODO(), c.ID, dtypes.ContainerRemoveOptions{})
+						if err != nil {
+							level.Info(s.logger).Log("method", "container remove", "err", err)
+							s.mu.Unlock()
+							continue
+						}
 					}
 				}
 			}
@@ -144,7 +146,6 @@ func (s *basicService) createBuild(ctx context.Context, payload *types.Payload) 
 			s.mu.Unlock()
 		}
 	}
-
 	return nil
 }
 

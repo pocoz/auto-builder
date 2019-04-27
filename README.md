@@ -1,26 +1,31 @@
-Build in deb package:
+## Service update docker containers.
+The service keeps track of container updates in a register. 
+And based on the config updates the containers on your workstation. 
+The service has been tested in the Ubuntu 18.04 system.
+
+### Dependencies:
+[go-bin-deb](https://github.com/mh-cbon/go-bin-deb)
+
+### Installation:
+From the project directory, run the command:
 ```
 sh build.sh
 ```
+After a successful build, the **deb** package will be created in the **dist** directory.
 
-After a successful build, the package will be created in the dist directory.
-
-Registry must send hooks to the address:
+### Service API
+The service starts on port *23001* and receives 
+[notification messages from the registry](https://docs.docker.com/registry/notifications/) at the following address:
 ```
-your.server.com/api/vi/build
+127.0.0.1:23001/api/v1/buid
 ```
 
-Setup registry example:
+### Setup registry example:
 ```
 docker run -d -t \
---name $NODE_NAME \
+--name registry \
 --network host \
 -p 5000:5000 \
---restart=always \
--v "$(pwd)"/auth:/auth \
--e REGISTRY_AUTH=htpasswd \
--e REGISTRY_AUTH_HTPASSWD_REALM="Registry Realm" \
--e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd \
 -e REGISTRY_NOTIFICATIONS_ENDPOINTS="
 - name: builder
   url: https://builder.your.site/api/v1/build
@@ -29,45 +34,50 @@ docker run -d -t \
   backoff: 30s
   " \
 registry:2
-
 ```
 
-Port used by default
-- 23001 - HTTP API
-
-Create a file in the directory:
+### Server Tuning:
+On the machine on which the service will be launched you need to create a configuration file:
 ```
 /srv/auto-builder/config.json
 ```
+Add rights for this file to the user **auto-builder** and group **auto-builder**:
+```
+sudo chmod 0755 /srv/auto-builder/config.json
+sudo chown -R auto-builder:auto-builder /srv/auto-builder/
+```
 
-Add the following data to it:
+An example of filling the configuration file:
 ```
 {
-	"auth": { // Autenticate block
-		"login": "your_login", // Your registry login
-		"password": "your_password" // Your registry password
+	"auth": {
+		"login": "your_registry_login",
+		"password": "your_registry_password"
 	},
-	"config_list": [ // Containers configs
+	"config_list": [
 		{
-			"image": "registry.host/repository", // Image name
-			"environments": [
-				"YOUR_ENV_KEY=YOUR_ENV_VALUE", // Startup container variables
-				"YOUR_ENV_KEY=YOUR_ENV_VALUE"  // Startup container variables
-			]
+			"image": "your.registry.addr/your-container-1",
 		},
 		{
-			"image": "registry.host/repository", // Image name
+			"image": "your.registry.addr/your-container-2",
 			"environments": [
-				"YOUR_ENV_KEY=YOUR_ENV_VALUE", // Startup container variables
-				"YOUR_ENV_KEY=YOUR_ENV_VALUE"  // Startup container variables
+				"PRIVKEY_PEM=/keys/priv1.pem",
+				"ADDRESS=127.0.0.1",
+				"PORT=8872",
+				"WEBROOT=/webroot/",
+				"TMP=/tmp/",
+				"NATS_URL=nats://127.0.0.1:4222",
+				"MONGO_HOST=127.0.0.1:27017",
+				"GIN_MODE=release"
+			],
+			"cmd": [
+				"pwd"
+			],
+			"volumes": [
+				"VolumeTMP001:/tmp/",
+				"VolumeTMP002:/tmp/"
 			]
 		}
 	]
 }
-```
-
-Add rights to this config:
-```
-sudo chown -R auto-builder /srv/auto-builder
-sudo chmod 755 /srv/auto-builder/config.json
 ```
