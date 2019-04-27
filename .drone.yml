@@ -1,0 +1,31 @@
+kind: pipeline
+name: CI/CD mf
+
+workspace:
+  base: /go
+  path: mod/github.com/pocoz/auto-builder
+
+steps:
+    - name: tests
+      image: golang:latest
+      commands:
+        - go test -v --cover ./...
+
+    - name: linters
+      image: golang:latest
+      commands:
+        - go get -u golang.org/x/lint/golint
+        - golint ./...
+
+  - name: telegram notify
+    image: pocoz/drone-tg
+    settings:
+      proxy_url:
+        from_secret: telegram_proxy
+      token:
+        from_secret: telegram_token
+      chat_id:
+        from_secret: telegram_to
+    when:
+      status: [ success, failure ]
+
