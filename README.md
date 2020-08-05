@@ -6,6 +6,13 @@ The service has been tested in the Ubuntu 18.04 system.
 ### Dependencies:
 [go-bin-deb](https://github.com/mh-cbon/go-bin-deb)
 
+You may need to install ```fakeroot```
+
+For MacOs you need to install ```dpkg```
+```
+brew install dpkg
+``` 
+
 ### Installation:
 From the project directory, run the command:
 ```
