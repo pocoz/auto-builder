@@ -10,6 +10,7 @@ type Error struct {
 	Message string
 }
 
+
 // ErrorResponse HTTP answer when an error occurs
 type ErrorResponse struct {
 	Error       string `json:"error"`
